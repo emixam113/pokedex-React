@@ -20,7 +20,9 @@ button{
   color: black;
   background: color #1a1a1a;
 }
-
+p{
+  color: #fff;
+}
 .pokemoncard {
   display: flex;
   flex-direction: column; /* Met le contenu en colonne */
@@ -33,6 +35,7 @@ button{
   width: 300px;
   margin: auto;
   padding-top: 20px;
+  color: #fff;
 }
 
 .pokemon-image img{
@@ -52,6 +55,7 @@ button{
   font-size: 24px;
   margin-top: 10px; /* Espace entre l'image et le texte */
   text-align: center;
+  
 }
 
 .types{

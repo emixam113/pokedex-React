@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import "./App.css";
 import PokemonCard from "./components/PokemonCard";
+import ColorCard from "./components/ColorCard";
 import NavBar from "./components/NavBar";
+import "./App.css";
 
 const typeTranslations = {
   normal: "Normal",
@@ -24,60 +25,82 @@ const typeTranslations = {
   fairy: "Fée",
 };
 
+const seasonRanges = {
+  season1: { startId: 1, limit: 151 }, // Pokémon 1 - 151
+  season2: { startId: 152, limit: 100 }, // Pokémon 152 - 251
+  season3: { startId: 252, limit: 134 }, // Pokémon 252 - 385
+  season4: { startId: 386, limit: 108 }, // Pokémon 386 - 493
+};
+
+async function fetchPokemon(id) {
+  try {
+    const imgSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+
+    const [detailsResponse, speciesResponse] = await Promise.all([
+      fetch(`https://pokeapi.co/api/v2/pokemon/${id}`),
+      fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`),
+    ]);
+
+    if (!detailsResponse.ok || !speciesResponse.ok) {
+      throw new Error("Échec du chargement des données Pokémon");
+    }
+
+    const detailsData = await detailsResponse.json();
+    const speciesData = await speciesResponse.json();
+
+    const nameFr =
+      speciesData.names.find((entry) => entry.language.name === "fr")?.name ||
+      detailsData.name;
+    const typeNames = detailsData.types.map(
+      (t) => typeTranslations[t.type.name] || t.type.name
+    );
+
+    return { id, name: nameFr, imgSrc, type: typeNames };
+  } catch (error) {
+    console.error(`Erreur lors de la récupération du Pokémon ${id} :`, error);
+    return null;
+  }
+}
+
 function App() {
   const [pokemonData, setPokemonData] = useState([]);
   const [pokemonIndex, setPokemonIndex] = useState(0);
-  const [season, setSeason] = useState("season1"); // "season1" ou "season2"
+  const [season, setSeason] = useState("season1");
 
   useEffect(() => {
-    async function fetchPokemonData() {
+    let isMounted = true;
+
+    async function fetchSeasonPokemon() {
       try {
-        const startId = season === "season1" ? 1 : 152;
-        const limit = season === "season1" ? 151 : 100; 
-
-        const pokemonList = await Promise.all(
-          Array.from({ length: limit }, async (_, i) => {
-            const id = startId + i;
-            const imgSrc = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-
-            // Fetch détails Pokémon
-            const detailsResponse = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
-            const detailsData = await detailsResponse.json();
-
-            // Fetch nom FR
-            const speciesResponse = await fetch(`https://pokeapi.co/api/v2/pokemon-species/${id}`);
-            const speciesData = await speciesResponse.json();
-            const nameFr = speciesData.names.find((entry) => entry.language.name === "fr")?.name || detailsData.name;
-
-            // Récupération des types en français
-            const typeNames = detailsData.types.map((t) => typeTranslations[t.type.name] || t.type.name);
-
-            return {
-              id,
-              name: nameFr,
-              imgSrc,
-              type: typeNames, 
-            };
-          })
+        const { startId, limit } = seasonRanges[season];
+        const promises = Array.from({ length: limit }, (_, i) =>
+          fetchPokemon(startId + i)
         );
-
-        setPokemonData(pokemonList);
-        setPokemonIndex(0); // Remettre l'index à zéro
+        const results = await Promise.all(promises);
+        if (isMounted) {
+          setPokemonData(results.filter(Boolean)); // Retirer les erreurs potentielles
+          setPokemonIndex(0);
+        }
       } catch (error) {
-        console.error("Erreur lors de la récupération des Pokémon :", error);
+        console.error("Erreur lors du chargement de la saison :", error);
       }
     }
 
-    fetchPokemonData();
-  }, [season]); 
+    fetchSeasonPokemon();
+    return () => {
+      isMounted = false; // Annule les mises à jour si l'utilisateur change de saison trop vite
+    };
+  }, [season]);
 
   return (
-    <div className="Text font-sans-serif">
-      <NavBar
-        pokemonIndex={pokemonIndex}
-        setPokemonIndex={setPokemonIndex}
-        pokemonList={pokemonData}
-      />
+    <div className="font-sans bg-gray-100 min-h-screen">
+      {/* Barre de navigation */}
+      <NavBar 
+        pokemonIndex={pokemonIndex} 
+        setPokemonIndex={setPokemonIndex} 
+        pokemonList={pokemonData} 
+     />
+
 
       {/* Sélecteur de saison */}
       <div className="flex justify-center my-4">
@@ -89,13 +112,21 @@ function App() {
         >
           <option value="season1">Saison 1 (1-151)</option>
           <option value="season2">Saison 2 (152-251)</option>
-          <option value="season3">Saison 3 (252-386)</option>
-          <option value="season4">Saison 4 (387-493)</option>
+          <option value="season3">Saison 3 (252-385)</option>
+          <option value="season4">Saison 4 (386-493)</option>
         </select>
       </div>
 
-      {pokemonData.length > 0 && <PokemonCard pokemon={pokemonData[pokemonIndex]} />}
-      {String(pokemonData[pokemonIndex]?.id || 0).padStart(3, "0")}
+      {/* Affichage du Pokémon */}
+      {pokemonData.length > 0 && (
+        <div className="flex flex-col items-center">
+          <PokemonCard pokemon={pokemonData[pokemonIndex]} />
+          <p className>
+          {pokemonData[pokemonIndex] ? String(pokemonData[pokemonIndex].id).padStart(3, "0") : ""}
+
+          </p>
+        </div>
+      )}
     </div>
   );
 }
