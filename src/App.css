@@ -1,0 +1,78 @@
+html{
+  background-color: black;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  background-color: black;
+}
+button{
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: border-color 0.25;
+  color: black;
+  background: color #1a1a1a;
+}
+
+.pokemoncard {
+  display: flex;
+  flex-direction: column; /* Met le contenu en colonne */
+  align-items: center; /* Centre horizontalement */
+  justify-content: center;
+  text-align: center;
+  background-color: var(--type-color); /* Applique la couleur de type */
+  border-radius: 20px;
+  padding: 20px;
+  width: 300px;
+  margin: auto;
+  padding-top: 20px;
+}
+
+.pokemon-image img{
+  max-width: 100%;
+  height: auto;
+  justify-content: center; 
+  object-fit: contain;
+  display:flex;
+  flex-wrap: wrap;
+  align-items: center;
+
+}
+
+.Name {
+  color: #fff;
+  font-family: "sans-serif";
+  font-size: 24px;
+  margin-top: 10px; /* Espace entre l'image et le texte */
+  text-align: center;
+}
+
+.types{
+  display:flex;
+  width: 300px;
+  flex-direction: row;
+  font-size: 20px;
+}
+.pokemon-type{
+  width:110px;
+  text-align: center; 
+  border-radius: 30px;
+  row-gap: 60px;
+  margin: 10px; 
+}
+.Navbar{
+display: flex;
+justify-content: center;
+gap: 30px;
+margin: 0;
+}
+.Text {
+  color: #fff;
+}
