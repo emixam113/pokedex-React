@@ -25,11 +25,17 @@ const typeTranslations = {
   fairy: "Fée",
 };
 
+// Définition des saisons et leurs plages d'IDs
 const seasonRanges = {
-  season1: { startId: 1, limit: 151 }, // Pokémon 1 - 151
-  season2: { startId: 152, limit: 100 }, // Pokémon 152 - 251
-  season3: { startId: 252, limit: 134 }, // Pokémon 252 - 385
-  season4: { startId: 386, limit: 108 }, // Pokémon 386 - 493
+  season1: { startId: 1, limit: 151 },
+  season2: { startId: 152, limit: 100 },
+  season3: { startId: 252, limit: 134 },
+  season4: { startId: 386, limit: 107 },
+  season5: { startId: 494, limit: 156 },
+  season6: { startId: 650, limit: 72 },
+  season7: { startId: 722, limit: 88 },
+  season8: { startId: 810, limit: 96 },
+  season9: { startId: 906, limit: 112 },
 };
 
 async function fetchPokemon(id) {
@@ -78,7 +84,7 @@ function App() {
         );
         const results = await Promise.all(promises);
         if (isMounted) {
-          setPokemonData(results.filter(Boolean)); // Retirer les erreurs potentielles
+          setPokemonData(results.filter(Boolean)); // Filtre les erreurs éventuelles
           setPokemonIndex(0);
         }
       } catch (error) {
@@ -88,7 +94,7 @@ function App() {
 
     fetchSeasonPokemon();
     return () => {
-      isMounted = false; // Annule les mises à jour si l'utilisateur change de saison trop vite
+      isMounted = false;
     };
   }, [season]);
 
@@ -99,21 +105,21 @@ function App() {
         pokemonIndex={pokemonIndex} 
         setPokemonIndex={setPokemonIndex} 
         pokemonList={pokemonData} 
-     />
+      />
 
-
-      {/* Sélecteur de saison */}
+      {/* Sélecteur de saison dynamique */}
       <div className="flex justify-center my-4">
-        <label className="mr-2 font-bold">Choisir une saison :</label>
+        <label className="mr-2 font-bold text-gray-700">Choisir une saison :</label>
         <select
-          className="border rounded p-2"
+          className="border rounded p-2 bg-white shadow-md hover:bg-gray-50 cursor-pointer"
           value={season}
           onChange={(e) => setSeason(e.target.value)}
         >
-          <option value="season1">Saison 1 (1-151)</option>
-          <option value="season2">Saison 2 (152-251)</option>
-          <option value="season3">Saison 3 (252-385)</option>
-          <option value="season4">Saison 4 (386-493)</option>
+          {Object.entries(seasonRanges).map(([key, { startId, limit }]) => (
+            <option key={key} value={key}>
+              {`Saison ${key.replace("season", "")} (${startId}-${startId + limit - 1})`}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -121,9 +127,8 @@ function App() {
       {pokemonData.length > 0 && (
         <div className="flex flex-col items-center">
           <PokemonCard pokemon={pokemonData[pokemonIndex]} />
-          <p className>
-          {pokemonData[pokemonIndex] ? String(pokemonData[pokemonIndex].id).padStart(3, "0") : ""}
-
+          <p className="text-lg font-semibold mt-2">
+            {String(pokemonData[pokemonIndex]?.id).padStart(3, "0")}
           </p>
         </div>
       )}
